@@ -1,0 +1,38 @@
+name: arena
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: arena
+  cancel-in-progress: false
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Restaurer l'état
+        run: |
+          if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git fetch --depth=1 origin data
+            git show origin/data:state.json > state.json
+          fi
+      - name: Scanner pendant 4 minutes
+        run: DURATION_S=240 node bot/run.js
+      - name: Sauvegarder l'état et le rapport
+        run: |
+          mkdir out
+          cp state.json REPORT.md out/
+          cd out
+          git init -q -b data
+          git config user.name arena-bot
+          git config user.email arena-bot@users.noreply.github.com
+          git add -A
+          git commit -qm "état $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data
