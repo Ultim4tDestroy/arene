@@ -2,7 +2,7 @@ name: arena
 # Fait tourner l'Arène (simulation de memecoins) toutes les 5 minutes, sans ton PC. Aucun secret, aucun ordre réel.
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -12,7 +12,7 @@ concurrency:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 65
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,7 +25,7 @@ jobs:
             git show origin/data:state.json > state.json
           fi
       - name: Scanner pendant 4 minutes
-        run: DURATION_S=240 node bot/run.js
+        run: DURATION_S=3000 node bot/run.js
       - name: Sauvegarder l'état et le rapport
         run: |
           mkdir out
